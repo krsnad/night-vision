@@ -1,5 +1,5 @@
 
-import IndexedArray from 'arrayslicer'
+// import IndexedArray from 'arrayslicer'
 import Const from './constants.js'
 
 const {
@@ -129,50 +129,39 @@ export default {
         return min
     },
 
-    // Fast filter. Really fast, like 10X
-    fastFilter(arr, t1, t2) {
-        if (!arr.length) return [arr, undefined]
-        try {
-            let ia = new IndexedArray(arr, "0")
-            let res = ia.getRange(t1, t2)
-            let i0 = ia.valpos[t1].next
-            return [res, i0]
-        } catch(e) {
-            // Something wrong with fancy slice lib
-            // Fast fix: fallback to filter
-            return [arr.filter(x =>
-                x[0] >= t1 && x[0] <= t2
-            ), 0]
+
+    findTimeRange(arr, t1, t2) {
+        function binarySearch(target, isLeft) {
+            let left = 0;
+            let right = arr.length - 1;
+    
+            while (left <= right) {
+                let mid = Math.floor((left + right) / 2);
+                if (arr[mid][0] === target) {
+                    return isLeft ? mid : mid + 1;
+                } else if (arr[mid][0] < target) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+    
+            return isLeft ? left : right + 1;
         }
+    
+    
+        // Ensure t1 is not greater than t2
+        if (t1 > t2) {
+            [t1, t2] = [t2, t1];
+        }
+    
+        let start = binarySearch(t1, true);
+        let end = binarySearch(t2, false);
+
+        return [start, end];
     },
 
-    // Fast filter 2 (returns indices)
-    fastFilter2(arr, t1, t2) {
-        if (!arr.length) return [arr, undefined]
-        try {
-            let ia = new IndexedArray(arr, "0")
 
-            // fetch start and default to the next index above
-            ia.fetch(t1)
-            let start = ia.cursor || ia.nexthigh
-
-            // fetch finish and default to the next index below
-            ia.fetch(t2)
-            let finish = ia.cursor || ia.nextlow
-
-            return [start, finish+1]
-        } catch(e) {
-            // Something wrong with fancy slice lib
-            // Fast fix: fallback to filter
-            let subset = arr.filter(x =>
-                x[0] >= t1 && x[0] <= t2
-            )
-            let i1 = arr.indexOf(subset[0])
-            let i2 = arr.indexOf(subset[subset.length - 1])
-
-            return [i1, i2]
-        }
-    },
 
     // Fast filter (index-based)
     fastFilterIB(arr, t1, t2) {

@@ -17,6 +17,7 @@ class DataHub {
         this.events = events
         this.se = se
         se.hub = this // Set a ref to the hub
+    
 
         // EVENT INTERFACE
         events.on('hub:set-scale-index', this.onScaleIndex.bind(this))
@@ -42,10 +43,29 @@ class DataHub {
     // Update data on 'range-changed'. Should apply
     // filters only (not updating the full structure)
     updateRange(range) {
+        // assuming that main overlay is this.mainOv
+
+        let mainOverlayRange = [undefined, undefined];
+        console.log('updateRange');
         for (var pane of this.data.panes) {
+
             for (var ov of pane.overlays) {
                 let off = ov.indexOffset
-                ov.dataView = this.filter(ov.data, range, off)
+                
+                if (this.mainOv != ov && ['Sparse'].includes(ov.type)){
+                    //assuming indexRange were already set in the loop
+                    
+                    ov.dataView = this.filter(ov.data, mainOverlayRange, off, true);
+                }
+                else{
+
+                    ov.dataView = this.filter(ov.data, range, off);
+                    
+                    mainOverlayRange = [ov.data[ov.dataView.i1][0], ov.data[ov.dataView.i2][0]];
+                     
+                }
+
+
                 ov.dataSubset = ov.dataView.makeSubset()
             }
         }
@@ -70,6 +90,7 @@ class DataHub {
                     ov.data, range,
                     ov.indexOffset
                 )
+
                 ov.dataSubset = ov.dataView.makeSubset()
                 ov.dataExt = ov.dataExt || {}
                 ov.settings = ov.settings || {}
@@ -131,14 +152,24 @@ class DataHub {
     }
 
     // [API] Create a subset of timeseries
-    filter (data, range, offset = 0) {
-        let filter = this.indexBased ?
-            Utils.fastFilterIB : Utils.fastFilter2
+    filter (data, range, offset = 0, force_value_based = false) {
+
+        let filter;
+        if (force_value_based) {
+            filter = Utils.findTimeRange;
+        } else {
+            filter = this.indexBased ? Utils.fastFilterIB : Utils.findTimeRange;
+        }
+        // console.log('filter')
+        // console.log('data len', data.length)
+        // console.log('filter args', range[0]-offset, range[1]-offset)
         var ix = filter(
             data,
             range[0] - offset,
             range[1] - offset
         )
+        // console.log(ix[0], ix[1])
+
         return new DataView$(data, ix[0], ix[1])
     }
 

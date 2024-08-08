@@ -12,9 +12,15 @@ export default function(self, range, overlay = null) {
 
     //const ib = self.tiMap.ib
     const dt = range[1] - range[0]
+    // console.log('layout init', overlay, range[0], range[1])
+    if (overlay !== null){
+        console.log(overlay.name)
+        console.log(overlay)
+    }
     const r = self.spacex / dt
     const ls = (self.scaleSpecs || {}).log || false // TODO: from scale specs
     const offset = (overlay ? overlay.indexOffset : 0) ?? 0
+
 
     Object.assign(self, {
         // Time and global index to screen x-coordinate
@@ -28,8 +34,19 @@ export default function(self, range, overlay = null) {
         // Time-or-index to screen x-coordinate
         ti2x: (t, i) => {
             let src = self.indexBased ? (i + offset) : t
+            if (overlay !== null && overlay.name === "APE Tether US Binance") {
+                console.log('ti2x')
+                // console.log( range[0], range[1], dt)
+                let rg1 = Math.floor(range[0])
+                let rg2 = Math.floor(range[1])
+                let r2 = self.spacex / (overlay.data[rg2] - overlay.data[rg1])
+                console.log(rg2, overlay.data.length)
+                // console.log((overlay.data[Math.floor(src)] - overlay.data[Math.floor(range[0])]) * r2 + HPX)
+                // console.log(Math.floor((src - range[0]) * r) + HPX)
+            }
             return Math.floor((src - range[0]) * r) + HPX
         },
+        // ti2xSparse: (t)
         // Time to screen x-coordinates
         time2x: t => {
             return Math.floor((t - range[0]) * r) + HPX

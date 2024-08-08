@@ -177,6 +177,7 @@ class NightVision {
     update(type = 'layout', opt = {}) {
         var [type, id] = type.split('-')
         const ev = this.events
+        console.log('update', type, id);
         switch(type) {
             case 'layout':
                 ev.emitSpec('chart', 'update-layout', opt)
@@ -184,6 +185,7 @@ class NightVision {
             case 'data':
                 // TODO: update cursor if it's ahead of the last candle
                 // (needs to track the new last)
+
                 this.hub.updateRange(this.range)
                 this.meta.calcOhlcMap()
                 ev.emitSpec('chart', 'update-layout', opt)
@@ -221,6 +223,7 @@ class NightVision {
         let range = this.range
         let dti = range[1] - range[0]
         this.range = [ti - dti, ti]
+
     }
 
     // Scroll on interval forward

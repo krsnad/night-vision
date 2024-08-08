@@ -20,7 +20,8 @@ prop('shape', {
 draw(ctx) {
     const layout = $core.layout
     const view = $core.view
-
+    const hub = $core.hub
+    // console.log('Sparse draw', $core.range[0], $core.range[1], $core.range[1] - $core.range[0]);
     ctx.fillStyle = $props.color
     ctx.strokeStyle = $props.color
 
@@ -98,7 +99,7 @@ drawTriandles(ctx, view, layout) {
         let p = data[i]
         let x = layout.ti2x(p[0], i)
         let y = layout.value2y(p[1])
-        let dir = p[2] ?? 1
+        let dir = p[2] ?? -1
         ctx.moveTo(x, y)
         ctx.lineTo(x + side * dir * 0.63, y + side * dir)
         ctx.lineTo(x - side * dir * 0.63, y + side * dir)
@@ -117,7 +118,10 @@ static yRange(data) {
     return [high, low]
 }
 
-static preSampler(x) => [x[1]]
+
+static preSampler(x) {
+    return [x[1]]
+}
 
 // Legend, defined as pairs [value, color]
 legend(x) => [[Math.random(), $props.color]]

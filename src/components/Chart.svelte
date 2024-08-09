@@ -114,7 +114,7 @@ function onCursorLocked(state) {
 // TODO: init cursor when trackpad scrolling
 // is the first input (no mousemove yet)
 function onRangeChanged($range, emit = true) {
-    console.log('onRangeChanged');
+    // console.log('onRangeChanged');
     // Emit a global event (hook)
     if (emit) events.emit('$range-update', $range)
     rangeUpdate($range)

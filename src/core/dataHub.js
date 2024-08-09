@@ -17,7 +17,7 @@ class DataHub {
         this.events = events
         this.se = se
         se.hub = this // Set a ref to the hub
-    
+        
 
         // EVENT INTERFACE
         events.on('hub:set-scale-index', this.onScaleIndex.bind(this))
@@ -37,69 +37,106 @@ class DataHub {
         this.offchart = null // All other panes
         this.mainOv = null // Main overlay ref
         this.mainPaneId = null // Mane pane id
+        this.tsIndexMap = null // Time-index map
+
+        this.createTsIndexMap()
 
     }
 
-    // Update data on 'range-changed'. Should apply
-    // filters only (not updating the full structure)
+    // create a timeseries index mapping on the main overlay
+    createTsIndexMap() {
+        let all = Utils.allOverlays(this.data.panes)
+        let mainOv = all.find(x => x.main) || all[0]
+        if  (!mainOv) return
+
+        let data = mainOv.data
+        let tsIndexMap = new Map()
+        for (var i = 0; i < data.length; i++) {
+            tsIndexMap.set(data[i][0], i)
+        }
+        this.tsIndexMap = tsIndexMap
+    }
+
+
+    // Common function to update overlay data
+    updateOverlayData(overlay, range, mainOverlayRange) {
+        let off = overlay.indexOffset || 0;
+        
+        if (this.mainOv !== overlay && ['Sparse'].includes(overlay.type)) {
+            overlay.dataView = this.filter(overlay.data, mainOverlayRange, off, true);
+        } else {
+            overlay.dataView = this.filter(overlay.data, range, off);
+        }
+        
+        overlay.dataSubset = overlay.dataView.makeSubset();
+    }
+
+    // Update data on 'range-changed'. Applies filters only.
     updateRange(range) {
-        // assuming that main overlay is this.mainOv
-
         let mainOverlayRange = [undefined, undefined];
-        console.log('updateRange');
-        for (var pane of this.data.panes) {
 
-            for (var ov of pane.overlays) {
-                let off = ov.indexOffset
+        for (let pane of this.data.panes || []) {
+            for (let overlay of pane.overlays || []) {
+                this.updateOverlayData(overlay, range, mainOverlayRange);
                 
-                if (this.mainOv != ov && ['Sparse'].includes(ov.type)){
-                    //assuming indexRange were already set in the loop
-                    
-                    ov.dataView = this.filter(ov.data, mainOverlayRange, off, true);
+                // Update mainOverlayRange if this is the main overlay
+                if (overlay.data && (overlay === this.mainOv || !this.mainOv)) {
+                    mainOverlayRange = [
+                        overlay.data[overlay.dataView.i1][0],
+                        overlay.data[overlay.dataView.i2][0]
+                    ];
                 }
-                else{
-
-                    ov.dataView = this.filter(ov.data, range, off);
-                    
-                    mainOverlayRange = [ov.data[ov.dataView.i1][0], ov.data[ov.dataView.i2][0]];
-                     
-                }
-
-
-                ov.dataSubset = ov.dataView.makeSubset()
             }
         }
     }
+
+
 
     // Calculate visible data section
     // (& completes the main structure)
     // TODO: smarter algo of adding/removing panes. Uuids
     // should remain the same if pane still exists
     calcSubset(range) {
-        var paneId = 0
-        for (var pane of this.data.panes || []) {
-            pane.id =  paneId++
-            pane.overlays = pane.overlays || []
-            pane.settings = pane.settings || {}
-            var ovId = 0
-            for (var ov of pane.overlays) {
-                ov.id = ovId++
-                ov.main = !!ov.main
-                ov.data = ov.data || []
-                ov.dataView = this.filter(
-                    ov.data, range,
-                    ov.indexOffset
-                )
-
-                ov.dataSubset = ov.dataView.makeSubset()
-                ov.dataExt = ov.dataExt || {}
-                ov.settings = ov.settings || {}
-                ov.props = ov.props || {}
-                ov.uuid = ov.uuid || Utils.uuid3()
-            }
-            // Flag that pane is ready for rendering
-            pane.uuid = pane.uuid || Utils.uuid3()
+        let paneId = 0;
+        for (let pane of this.data.panes || []) {
+            this.setupPane(pane, paneId++, range);
         }
+    }
+
+    // Setup individual pane and its overlays
+    setupPane(pane, paneId, range) {
+        pane.id = paneId;
+        pane.overlays = pane.overlays || [];
+        pane.settings = pane.settings || {};
+        pane.uuid = pane.uuid || Utils.uuid3();
+
+        let mainOverlayRange = [undefined, undefined];
+        let ovId = 0;
+        for (let overlay of pane.overlays) {
+            this.setupOverlay(overlay, ovId++, range, mainOverlayRange);
+            
+            // Update mainOverlayRange if this is the main overlay
+            if (overlay.data && (overlay === this.mainOv || !this.mainOv)) {
+                console.log('mainOverlayRange', overlay.data[overlay.dataView.i1])
+                mainOverlayRange = [
+                    overlay.data[overlay.dataView.i1][0],
+                    overlay.data[overlay.dataView.i2][0]
+                ];
+            }
+        }
+    }
+
+    // Setup individual overlay
+    setupOverlay(overlay, ovId, range, mainOverlayRange) {
+        overlay.id = ovId;
+        overlay.main = !!overlay.main;
+        overlay.data = overlay.data || [];
+        overlay.dataExt = overlay.dataExt || {};
+        overlay.settings = overlay.settings || {};
+        overlay.props = overlay.props || {};
+        overlay.uuid = overlay.uuid || Utils.uuid3();
+
+        this.updateOverlayData(overlay, range, mainOverlayRange);
     }
 
     // Load indicator scripts

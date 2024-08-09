@@ -177,7 +177,6 @@ class NightVision {
     update(type = 'layout', opt = {}) {
         var [type, id] = type.split('-')
         const ev = this.events
-        console.log('update', type, id);
         switch(type) {
             case 'layout':
                 ev.emitSpec('chart', 'update-layout', opt)
@@ -185,8 +184,8 @@ class NightVision {
             case 'data':
                 // TODO: update cursor if it's ahead of the last candle
                 // (needs to track the new last)
-
                 this.hub.updateRange(this.range)
+                this.hub.createTsIndexMap()
                 this.meta.calcOhlcMap()
                 ev.emitSpec('chart', 'update-layout', opt)
             break

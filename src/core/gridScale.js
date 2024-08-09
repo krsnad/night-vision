@@ -74,11 +74,14 @@ export default function Scale(id, src, specs) {
     function calc$Range() {
         // Need to find minimum & maximum of selected
         // set of overlays (on the same scale)
+        console.log('calc$Range', ovs)
         var hi = -Infinity, lo = Infinity
         for (var ov of ovs) {
             if (ov.settings.display === false) continue
             let yfn = (meta.yRangeFns[gridId] || [])[ov.id]
+            // console.log('yfn', yfn)
             let yfnStatic = prefabs[ov.type].static.yRange 
+            // console.log('yfnStatic', yfnStatic)
             if (yfnStatic) {
                 yfn = { 
                     exec: yfnStatic,
@@ -356,6 +359,7 @@ export default function Scale(id, src, specs) {
         }
     }
 
+    console.log('Scale', id, src)
     calc$Range()
     calcSidebar()
     calcTransform()

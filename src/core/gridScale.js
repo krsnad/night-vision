@@ -124,14 +124,18 @@ export default function Scale(id, src, specs) {
         } else {
             if (!ls) {
                 exp = exp === false ? 0 : 1
-                self.$hi = hi + (hi - lo) * props.config.EXPAND * exp
-                self.$lo = lo - (hi - lo) * props.config.EXPAND * exp
+                // Adjust the range by expanding it slightly
+                let range = hi - lo
+                let expandFactor = props.config.EXPAND * exp
+                self.$hi = hi + range * expandFactor
+                self.$lo = lo - range * expandFactor
             } else {
                 self.$hi = hi
                 self.$lo = lo
                 logScale.expand(self, height)
             }
 
+            // Ensure the range is never zero
             if (self.$hi === self.$lo) {
                 if (!ls) {
                     self.$hi *= 1.05  // Expand if height range === 0

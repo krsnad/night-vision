@@ -67,6 +67,25 @@ export default class OverlayEnv {
 
     }
 
+    // Draw end-of-day lines
+    drawEodLines(ctx) {
+        const layout = this.$core.layout
+        const height = layout.height
+
+        ctx.beginPath()
+        ctx.strokeStyle = this.$props.colors.eodLine || '#999'
+        ctx.lineWidth = 1
+
+        for (let point of layout.xs) {
+            if (point[2] === 'EOD') {
+                const x = layout.time2x(point[1])
+                this.lib.Segment.drawVertical(ctx, x, 0, height)
+            }
+        }
+
+        ctx.stroke()
+    }
+
     // Defines new property
     prop(name, obj = {}) {
         if (!(name in this.$props)) {

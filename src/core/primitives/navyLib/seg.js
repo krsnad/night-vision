@@ -37,4 +37,10 @@ export default class Segment {
             [this.x2, this.y2]
         ) < this.T
     }
+
+    // Draw vertical line
+    drawVertical(ctx, x, y1, y2) {
+        ctx.moveTo(x, y1)
+        ctx.lineTo(x, y2)
+    }
 }

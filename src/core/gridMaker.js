@@ -233,6 +233,10 @@ function GridMaker(id, specs, mainGrid = null) {
             Utils.getMonth(t) !== Utils.getMonth(prevT)) {
             self.xs.push([x, t, MONTH, 1])
         }
+        // Mark end of day
+        else if (prev[0] && Utils.getDay(t) !== Utils.getDay(prevT)) {
+            self.xs.push([x, prevT, 'EOD', 1]) // End of Day marker
+        }
         // TODO: should be added if this day !== prev day
         // And the same for 'botbar.js', TODO(*)
         else if (Utils.dayStart(t) === t) {

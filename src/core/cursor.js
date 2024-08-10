@@ -25,11 +25,7 @@ export default class Cursor {
         let start = layout.main.startx
         let step = layout.main.pxStep
 
-        // Only calculate yValues if the cursor position has changed significantly
-        if (Math.abs(this.x - this.prevX) > step || this.prevX === undefined) {
-            this.yValues(layout)
-            this.prevX = this.x
-        }
+        this.yValues(layout)
 
         // If cursor is locked, we get x-coord from stored time
         if (this.locked && !this.meta.scrollLock) {

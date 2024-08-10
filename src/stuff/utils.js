@@ -158,18 +158,24 @@ export default {
         let start = binarySearch(t1, true);
         let end = binarySearch(t2, false);
 
-        return [start, end];
+        // based on the code of dataView don't return the slice indexes, return the array indexes
+
+        return [start, end-1];
     },
 
 
 
     // Fast filter (index-based)
     fastFilterIB(arr, t1, t2) {
+        // based on the code of dataView don't return the slice indexes, return the array indexes
         if (!arr.length) return [undefined, undefined]
         let i1 =  Math.floor(t1)
         if (i1 < 0) i1 = 0
-        let i2 =  Math.floor(t2 + 1)
-        //let res = arr.slice(i1, i2)
+        // let i2 =  Math.floor(t2 + 1)
+        let i2 =  Math.floor(t2)
+
+        console.log(arr.length, t1, t2, i1,i2)
+
         return [i1, i2]
     },
 

@@ -54,10 +54,8 @@ function getCoords(p, idx, ti2x, value2y) {
 
     let x = ti2x(p[0], idx)
     let dir = p[2] || -1
-    console.log($props.padding);
 
     let y = value2y(p[1]) * (1 - dir *  $props.padding)
-    console.log(new Date(p[0]), p[1], dir)
     return { x, y, dir }
 }
 
@@ -112,6 +110,7 @@ static yRange(data) {
         if (point > high) high = point
         if (point < low) low = point
     }
+
     return [high, low]
 }
 

@@ -72,16 +72,14 @@ export default function Scale(id, src, specs) {
 
     // Calc vertical value range
     function calc$Range() {
-        // Check if recalculation is necessary
-        if (self.lastCalcTime && Date.now() - self.lastCalcTime < 1000) {
-            return; // Skip recalculation if less than 1 second has passed
-        }
-
-        console.log('calc$Range', ovs)
+        // Need to find minimum & maximum of selected
+        // set of overlays (on the same scale)
+        // console.log('calc$Range', ovs)
         var hi = -Infinity, lo = Infinity
         for (var ov of ovs) {
             if (ov.settings.display === false) continue
             let yfn = (meta.yRangeFns[gridId] || [])[ov.id]
+            // console.log(ov.name, ov.type)
             let yfnStatic = prefabs[ov.type].static.yRange 
             if (yfnStatic) {
                 yfn = { 
@@ -92,6 +90,10 @@ export default function Scale(id, src, specs) {
             let data = ov.dataSubset
             // Intermediate hi & lo
             var h = -Infinity, l = Infinity
+            // Look for a user-defined y-range f()
+            // or calculate through iteration. 'preCalc'
+            // flag tells if pre-calculated h&l needed
+            // TODO: implement a global auto-precision algo
             if (!yfn || (yfn && yfn.preCalc)) {
                 for (var i = 0; i < data.length; i++) {
                     for (var j = 1; j < data[i].length; j++) {
@@ -101,8 +103,15 @@ export default function Scale(id, src, specs) {
                     }
                 }
             }
+            if(ov.type === 'Candles') {
+            }
             if (yfn) {
+                // Check if result is 'null', then this overlay
+                // should not affect the range at all
                 var yfnResult = yfn.exec(data, h, l)
+                if(ov.type === 'Candles') {
+                    // console.log('yfnResult', yfnResult)
+                }
                 if (yfnResult) {
                     var [h, l, exp] = yfnResult
                 } else {
@@ -110,10 +119,10 @@ export default function Scale(id, src, specs) {
                 }
             }
 
+            // maximum & minimum over all overlays
             if (h > hi) hi = h
             if (l < lo) lo = l
         }
-
         // Fixed y-range in non-auto mode
         if (yt && !yt.auto && yt.range) {
             self.$hi = yt.range[0]
@@ -121,6 +130,7 @@ export default function Scale(id, src, specs) {
         } else {
             if (!ls) {
                 exp = exp === false ? 0 : 1
+                // Adjust the range by expanding it slightly
                 let range = hi - lo
                 let expandFactor = props.config.EXPAND * exp
                 self.$hi = hi + range * expandFactor
@@ -131,17 +141,16 @@ export default function Scale(id, src, specs) {
                 logScale.expand(self, height)
             }
 
+            // Ensure the range is never zero
             if (self.$hi === self.$lo) {
                 if (!ls) {
-                    self.$hi *= 1.05
+                    self.$hi *= 1.05  // Expand if height range === 0
                     self.$lo *= 0.95
                 } else {
                     logScale.expand(self, height)
                 }
             }
         }
-
-        self.lastCalcTime = Date.now();
     }
 
     // Calculate $ precision for the Y-axis of an overlay
@@ -353,7 +362,6 @@ export default function Scale(id, src, specs) {
         }
     }
 
-    console.log('Scale', id, src)
     calc$Range()
     calcSidebar()
     calcTransform()

@@ -30,7 +30,6 @@ draw(ctx) {
     let bodies = cnv.upBodies.length ? cnv.upBodies : cnv.dwBodies
     if (!bodies.length) return
     let w = Math.max(bodies[0].w, 1)
-
     drawCvPart(ctx, $lib.candleWick, cnv.dwWicks, 1, 'colorWickDw')
     drawCvPart(ctx, $lib.candleWick, cnv.upWicks, 1, 'colorWickUp')
     drawCvPart(ctx, $lib.candleBody, cnv.dwBodies, w, 'colorBodyDw')
@@ -65,6 +64,8 @@ static yRange(data) {
         if (point[2] > high) high = point[2]
         if (point[3] < low) low = point[3]
     }
+    // console.log('yrange', new Date(data[0][0]), new Date(data[len - 1][0]), high, low)
+
     return [high, low]
 }
 

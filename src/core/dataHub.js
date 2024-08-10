@@ -62,7 +62,10 @@ class DataHub {
     updateOverlayData(overlay, range, mainOverlayRange) {
         let off = overlay.indexOffset || 0;
         
-        if (this.mainOv !== overlay && ['Sparse'].includes(overlay.type)) {
+        // if (this.mainOv !== overlay && ['Sparse'].includes(overlay.type)) {
+        if (mainOverlayRange[0] && ['Sparse'].includes(overlay.type)) {
+
+            console.log('Sparse overlay', mainOverlayRange.map(x => new Date(x)))
             overlay.dataView = this.filter(overlay.data, mainOverlayRange, off, true);
         } else {
             overlay.dataView = this.filter(overlay.data, range, off);
@@ -80,7 +83,7 @@ class DataHub {
                 this.updateOverlayData(overlay, range, mainOverlayRange);
                 
                 // Update mainOverlayRange if this is the main overlay
-                if (overlay.data && (overlay === this.mainOv || !this.mainOv)) {
+                if (overlay.data && (overlay === this.mainOv)) {
                     mainOverlayRange = [
                         overlay.data[overlay.dataView.i1][0],
                         overlay.data[overlay.dataView.i2][0]
@@ -109,15 +112,14 @@ class DataHub {
         pane.overlays = pane.overlays || [];
         pane.settings = pane.settings || {};
         pane.uuid = pane.uuid || Utils.uuid3();
-
         let mainOverlayRange = [undefined, undefined];
         let ovId = 0;
         for (let overlay of pane.overlays) {
             this.setupOverlay(overlay, ovId++, range, mainOverlayRange);
-            
             // Update mainOverlayRange if this is the main overlay
-            if (overlay.data && (overlay === this.mainOv || !this.mainOv)) {
-                console.log('mainOverlayRange', overlay.data[overlay.dataView.i1])
+            // here we assume that the main overlay is the first one
+            // detectMain is not called yet
+            if (overlay.data && (paneId === 0 && ovId === 1)) {
                 mainOverlayRange = [
                     overlay.data[overlay.dataView.i1][0],
                     overlay.data[overlay.dataView.i2][0]
@@ -197,16 +199,16 @@ class DataHub {
         } else {
             filter = this.indexBased ? Utils.fastFilterIB : Utils.findTimeRange;
         }
-        // console.log('filter')
-        // console.log('data len', data.length)
-        // console.log('filter args', range[0]-offset, range[1]-offset)
+
         var ix = filter(
             data,
             range[0] - offset,
             range[1] - offset
         )
-        // console.log(ix[0], ix[1])
-
+        if (force_value_based){
+            // console.log(data[ix[0]][0], data[ix[1]], ix[1], data.length)
+            console.log(new Date(data[ix[0]][0]), new Date(data[ix[1]][0]))
+        }
         return new DataView$(data, ix[0], ix[1])
     }
 

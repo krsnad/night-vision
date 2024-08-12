@@ -50,6 +50,20 @@ function body(props, layout, ctx) {
 
     ctx.stroke()
 
+    // Draw vertical lines for end of day markers
+    ctx.beginPath()
+    ctx.strokeStyle = props.colors.eodLine || '#999'
+    ctx.lineWidth = 1
+
+    for (var p of layout.botbar.xs) {
+        if (p[2] === 'EOD') {
+            let x = p[0] + sb0 + HPX
+            ctx.moveTo(x, 0)
+            ctx.lineTo(x, height)
+        }
+    }
+
+    ctx.stroke()
 }
 
 function panel(props, layout, ctx) {
